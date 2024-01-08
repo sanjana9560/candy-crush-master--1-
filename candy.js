@@ -124,7 +124,7 @@ function dragOver(e) {
     }
 }
 
-
+// nbj
 
 function dragEnter(e) {
     e.preventDefault();
