@@ -124,7 +124,7 @@ function dragOver(e) {
     }
 }
 
-// nbj
+
 
 function dragEnter(e) {
     e.preventDefault();
@@ -138,7 +138,6 @@ function dragLeave() {
 //     //this refers to the target tile that was dropped on
 //     otherTile = this;
 // }
-
 
 
 function dragDrop(e) {
@@ -219,13 +218,46 @@ function dragEnd() {
     }
 }
 
-function crushCandy() {
-    //crushFive();
-    //crushFour();
-    crushThree();
-    document.getElementById("score").innerText = score;
+// function crushCandy() {
+//     //crushFive();
+//     //crushFour();
+//     crushThree();
+//     document.getElementById("score").innerText = score;
 
+// }
+
+// function crushCandy() {
+//     crushThree(); // Check for candy crush
+//     slideCandy(); // Slide the candies after crushing
+//     generateCandy(); // Generate new candies after sliding
+
+//     // Recursively check for more candy crushes until there are no more
+//     if (checkValid()) {
+//         crushCandy();
+//     } else {
+//         document.getElementById("score").innerText = score;
+//     }
+// }
+
+function crushCandy() {
+    crushThree(); // Check for candy crush
+    slideCandy(); // Slide the candies after crushing
+    generateCandy(); // Generate new candies after sliding
+
+    // Recursively check for more candy crushes until there are no more
+    if (checkValid()) {
+        crushCandy();
+    } else {
+        // Update the score only if the element with id "score" is found
+        let scoreElement = document.getElementById("score");
+        if (scoreElement) {
+            scoreElement.innerText = score;
+        }
+    }
 }
+
+
+
 
 function crushThree() {
     //check rows
