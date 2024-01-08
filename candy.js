@@ -9,11 +9,28 @@ var currTile;
 var otherTile;
 
 
-window.onload = function() {
+// window.onload = function() {
+//     startGame();
+
+//     //1/10th of a second
+//     window.setInterval(function(){
+//         crushCandy();
+//         slideCandy();
+//         generateCandy();
+//     }, 100);
+// }
+
+
+
+
+// Determine if the device supports touch events
+const isTouchDevice = 'ontouchstart' in window || navigator.msMaxTouchPoints;
+
+window.onload = function () {
     startGame();
 
-    //1/10th of a second
-    window.setInterval(function(){
+    // 1/10th of a second
+    window.setInterval(function () {
         crushCandy();
         slideCandy();
         generateCandy();
@@ -24,40 +41,90 @@ function randomCandy() {
     return candies[Math.floor(Math.random() * candies.length)]; //0 - 5.99
 }
 
+// function startGame() {
+//     for (let r = 0; r < rows; r++) {
+//         let row = [];
+//         for (let c = 0; c < columns; c++) {
+//             // <img id="0-0" src="./images/Red.png">
+//             let tile = document.createElement("img");
+//             tile.id = r.toString() + "-" + c.toString();
+//             tile.src = "./images/" + randomCandy() + ".png";
+
+//             //DRAG FUNCTIONALITY
+//             tile.addEventListener("dragstart", dragStart); //click on a candy, initialize drag process
+//             tile.addEventListener("dragover", dragOver);  //clicking on candy, moving mouse to drag the candy
+//             tile.addEventListener("dragenter", dragEnter); //dragging candy onto another candy
+//             tile.addEventListener("dragleave", dragLeave); //leave candy over another candy
+//             tile.addEventListener("drop", dragDrop); //dropping a candy over another candy
+//             tile.addEventListener("dragend", dragEnd); //after drag process completed, we swap candies
+
+//             document.getElementById("board").append(tile);
+//             row.push(tile);
+//         }
+//         board.push(row);
+//     }
+
+//     console.log(board);
+// }
+
+// tile.draggable = true; // Make the tiles draggable
+
+
 function startGame() {
     for (let r = 0; r < rows; r++) {
         let row = [];
         for (let c = 0; c < columns; c++) {
-            // <img id="0-0" src="./images/Red.png">
             let tile = document.createElement("img");
             tile.id = r.toString() + "-" + c.toString();
             tile.src = "./images/" + randomCandy() + ".png";
 
-            //DRAG FUNCTIONALITY
-            tile.addEventListener("dragstart", dragStart); //click on a candy, initialize drag process
-            tile.addEventListener("dragover", dragOver);  //clicking on candy, moving mouse to drag the candy
-            tile.addEventListener("dragenter", dragEnter); //dragging candy onto another candy
-            tile.addEventListener("dragleave", dragLeave); //leave candy over another candy
-            tile.addEventListener("drop", dragDrop); //dropping a candy over another candy
-            tile.addEventListener("dragend", dragEnd); //after drag process completed, we swap candies
+
+            tile.draggable = true; // Make the tiles draggable
+
+
+            tile.addEventListener(isTouchDevice ? "touchstart" : "mousedown", dragStart);
+            tile.addEventListener(isTouchDevice ? "touchmove" : "mousemove", dragOver);
+            tile.addEventListener(isTouchDevice ? "touchend" : "mouseup", dragDrop);
+
+
+            tile.addEventListener("mousedown", dragStart);
+            tile.addEventListener("mousemove", dragOver);
+            tile.addEventListener("mouseup", dragDrop);
+
 
             document.getElementById("board").append(tile);
             row.push(tile);
         }
         board.push(row);
     }
-
-    console.log(board);
 }
 
+
+
+
+
 function dragStart() {
+    // e.preventDefault();
     //this refers to tile that was clicked on for dragging
     currTile = this;
 }
 
+// function dragOver(e) {
+//     e.preventDefault();
+// }
+
 function dragOver(e) {
     e.preventDefault();
+    if (isTouchDevice) {
+        let touch = e.touches[0];
+        let element = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (element && element.tagName === 'IMG') {
+            otherTile = element;
+        }
+    }
 }
+
+
 
 function dragEnter(e) {
     e.preventDefault();
@@ -67,10 +134,52 @@ function dragLeave() {
 
 }
 
-function dragDrop() {
-    //this refers to the target tile that was dropped on
-    otherTile = this;
+// function dragDrop() {
+//     //this refers to the target tile that was dropped on
+//     otherTile = this;
+// }
+
+
+
+function dragDrop(e) {
+    e.preventDefault();
+    if (!isTouchDevice) {
+        otherTile = this;
+    }
+
+    let currCoords = currTile.id.split("-");
+    let r = parseInt(currCoords[0]);
+    let c = parseInt(currCoords[1]);
+
+    let otherCoords = otherTile.id.split("-");
+    let r2 = parseInt(otherCoords[0]);
+    let c2 = parseInt(otherCoords[1]);
+
+    let moveLeft = c2 == c - 1 && r == r2;
+    let moveRight = c2 == c + 1 && r == r2;
+
+    let moveUp = r2 == r - 1 && c == c2;
+    let moveDown = r2 == r + 1 && c == c2;
+
+    let isAdjacent = moveLeft || moveRight || moveUp || moveDown;
+
+    if (isAdjacent) {
+        let currImg = currTile.src;
+        let otherImg = otherTile.src;
+        currTile.src = otherImg;
+        otherTile.src = currImg;
+
+        let validMove = checkValid();
+        if (!validMove) {
+            currTile.src = currImg;
+            otherTile.src = otherImg;
+        }
+    }
 }
+
+
+
+
 
 function dragEnd() {
 
@@ -208,92 +317,3 @@ function generateCandy() {
 
 
 
-var candies = ["Blue", "Orange", "Green", "Yellow", "Red", "Purple"];
-var board = [];
-var rows = 9;
-var columns = 9;
-var score = 0;
-
-var startX, startY, endX, endY;
-
-window.onload = function () {
-    startGame();
-
-    // 1/10th of a second
-    window.setInterval(function () {
-        crushCandy();
-        slideCandy();
-        generateCandy();
-    }, 100);
-}
-
-function randomCandy() {
-    return candies[Math.floor(Math.random() * candies.length)]; // 0 - 5.99
-}
-
-function startGame() {
-    for (let r = 0; r < rows; r++) {
-        let row = [];
-        for (let c = 0; c < columns; c++) {
-            let tile = document.createElement("img");
-            tile.id = r.toString() + "-" + c.toString();
-            tile.src = "./images/" + randomCandy() + ".png";
-
-            // TOUCH FUNCTIONALITY
-            tile.addEventListener("touchstart", touchStart);
-            tile.addEventListener("touchmove", touchMove);
-            tile.addEventListener("touchend", touchEnd);
-
-            document.getElementById("board").append(tile);
-            row.push(tile);
-        }
-        board.push(row);
-    }
-
-    console.log(board);
-}
-
-function touchStart(e) {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-}
-
-function touchMove(e) {
-    // Prevent scrolling while swiping
-    e.preventDefault();
-}
-
-function touchEnd(e) {
-    endX = e.changedTouches[0].clientX;
-    endY = e.changedTouches[0].clientY;
-
-    let deltaX = endX - startX;
-    let deltaY = endY - startY;
-
-    // Adjust these values based on your sensitivity
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Horizontal swipe
-        if (deltaX > 0) {
-            // Right swipe
-            console.log("Right swipe");
-            // Call a function to handle right swipe
-        } else {
-            // Left swipe
-            console.log("Left swipe");
-            // Call a function to handle left swipe
-        }
-    } else {
-        // Vertical swipe
-        if (deltaY > 0) {
-            // Down swipe
-            console.log("Down swipe");
-            // Call a function to handle down swipe
-        } else {
-            // Up swipe
-            console.log("Up swipe");
-            // Call a function to handle up swipe
-        }
-    }
-}
-
-// Rest of the code remains unchanged
